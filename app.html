@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shiro AI - Multimodal Studio</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="Css/style.css">
+</head>
+<body class="page-transition">
+    <!-- Auth Guard -->
+    <script>
+        if (!sessionStorage.getItem('shiro_auth_token')) {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="#" class="logo">
+                    <i class="fa-solid fa-brain"></i> Shiro<span class="highlight">.ai</span>
+                </a>
+            </div>
+            
+            <div class="new-chat-btn">
+                <button id="btn-new-chat"><i class="fa-solid fa-plus"></i> New Project</button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-label">STUDIOS</div>
+                <a href="#" class="nav-item active" data-target="chat-studio">
+                    <i class="fa-regular fa-comment-dots"></i> AI Conversation
+                </a>
+                <a href="#" class="nav-item" data-target="image-studio">
+                    <i class="fa-regular fa-image"></i> Image Generation
+                </a>
+                <a href="#" class="nav-item" data-target="video-studio">
+                    <i class="fa-solid fa-video"></i> Video Generation
+                </a>
+                <a href="#" class="nav-item" data-target="qr-studio">
+                    <i class="fa-solid fa-qrcode"></i> QR Studio
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" class="nav-item" id="settings-btn">
+                    <i class="fa-solid fa-gear"></i> Settings
+                </a>
+                <a href="#" class="nav-item" id="logout-btn" style="color: #ff5f56;">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out
+                </a>
+                <div class="user-profile">
+                    <div class="avatar" style="background-color: #ff0080;">A</div>
+                    <div class="user-info">
+                        <span class="name">Ashwin AS</span>
+                        <span class="plan">Chinmaya Vidyalaya</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- 1. AI Conversation Studio -->
+            <section id="chat-studio" class="studio-view active-view">
+                <div class="chat-header">
+                    <h2>Shiro <span class="badge">4B Model (Localhost)</span></h2>
+                </div>
+                
+                <div class="chat-history" id="chat-history">
+                    <!-- Default Greeting -->
+                    <div class="message ai-message">
+                        <div class="avatar ai-avatar"><i class="fa-solid fa-brain"></i></div>
+                        <div class="message-content">
+                            Hello Ashwin! I'm Shiro AI, running entirely locally on your machine. I see you are from Chinmaya Vidyalaya. How can I help you explore the limits of Intelligence today?
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div id="file-preview-container" style="display: none; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; align-items: center; gap: 10px; border: 1px solid var(--border-color);">
+                        <i id="file-preview-icon" class="fa-solid fa-file" style="font-size: 1.5rem; color: #a8c7fa; display: none;"></i>
+                        <img id="image-preview" src="" style="display: none; height: 40px; width: 40px; object-fit: cover; border-radius: 4px;">
+                        <span id="file-preview-name" style="flex: 1; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #e8eaed;"></span>
+                        <button id="remove-file-btn" style="background: transparent; border: none; color: #ff5f56; cursor: pointer; padding: 0 5px;"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="input-wrapper">
+                        <textarea id="chat-input" placeholder="Message Shiro AI..." rows="1"></textarea>
+                        <div class="input-actions">
+                            <input type="file" id="chat-file-input" style="display: none;" accept="image/*,.txt,.md,.csv,.html,.js,.py,.css,.json">
+                            <button class="icon-btn" id="attach-file-btn" title="Attach file"><i class="fa-solid fa-paperclip"></i></button>
+                            <button class="icon-btn send-btn" id="send-chat-btn"><i class="fa-solid fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                    <div class="disclaimer">Shiro AI can make mistakes. Consider verifying important information.</div>
+                </div>
+            </section>
+
+            <!-- 2. Image Generation Studio -->
+            <section id="image-studio" class="studio-view">
+                <div class="studio-header">
+                    <h2>Image Studio <span class="badge">Stable Diffusion</span></h2>
+                    <p>Generate stunning visuals from text prompts.</p>
+                </div>
+                
+                <div class="generator-workspace">
+                    <div class="prompt-box">
+                        <textarea id="image-prompt" placeholder="Describe the image you want to generate in detail... (e.g. A cyberpunk city at night with neon lights)"></textarea>
+                        <button class="generate-btn" id="generate-image-btn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Image</button>
+                    </div>
+
+                    <div class="output-gallery" id="image-gallery">
+                        <div class="empty-state">
+                            <i class="fa-regular fa-image"></i>
+                            <p>Generated images will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Video Generation Studio -->
+            <section id="video-studio" class="studio-view">
+                <div class="studio-header">
+                    <h2>Video Studio <span class="badge">Sora Alternative</span></h2>
+                    <p>Bring your ideas to life with high quality video generation.</p>
+                </div>
+                
+                <div class="generator-workspace">
+                    <div class="prompt-box">
+                        <textarea id="video-prompt" placeholder="Describe the video... (e.g. A majestic eagle flying over snow-capped mountains in 4k)"></textarea>
+                        <button class="generate-btn" id="generate-video-btn"><i class="fa-solid fa-clapperboard"></i> Generate Video</button>
+                    </div>
+
+                    <div class="output-gallery" id="video-gallery">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-film"></i>
+                            <p>Generated video will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. QR Studio -->
+            <section id="qr-studio" class="studio-view">
+                <div class="studio-header">
+                    <h2>AI QR Studio <span class="badge">Artistic QRs</span></h2>
+                    <p>Generate fully functional, stylized QR codes.</p>
+                </div>
+                
+                <div class="generator-workspace">
+                    <div class="prompt-box qr-prompt-box">
+                        <div class="input-group">
+                            <label>Destination URL</label>
+                            <input type="text" id="qr-url" placeholder="https://example.com">
+                        </div>
+                        <div class="input-group">
+                            <label>Art Style / Prompt (Optional)</label>
+                            <textarea id="qr-prompt" placeholder="Describe the art style... (e.g. beautiful floral patterns, cyberpunk aesthetic)"></textarea>
+                        </div>
+                        <button class="generate-btn" id="generate-qr-btn"><i class="fa-solid fa-qrcode"></i> Generate QR Code</button>
+                    </div>
+
+                    <div class="output-gallery" id="qr-gallery">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-qrcode"></i>
+                            <p>Your stylized QR code will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gear"></i> Shiro Settings</h3>
+                <button class="close-modal" id="close-settings"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <div class="setting-info">
+                        <h4>Local Knowledge Context</h4>
+                        <p>Allow Shiro to read attached files across all studios.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-info">
+                        <h4>Stream Responses</h4>
+                        <p>Show AI responses in real-time as they are typed.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <div class="setting-info">
+                        <h4>Hardware Acceleration</h4>
+                        <p>Use GPU rendering for Image and Video generation.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-group" style="align-items: flex-start; flex-direction: column; gap: 10px;">
+                    <div class="setting-info" style="width: 100%;">
+                        <h4>Ollama API Endpoint</h4>
+                        <p>When hosting on Netlify, enter your Ngrok/Cloudflare tunnel URL here to connect to your local Ollama.</p>
+                    </div>
+                    <input type="text" id="api-endpoint-input" value="http://localhost:3000" style="width: 100%; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: white; outline: none;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="JavaScript/script.js"></script>
+</body>
+</html>

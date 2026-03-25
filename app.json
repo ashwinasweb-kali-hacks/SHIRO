@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "Shiro AI",
+    "slug": "shiro-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./Assets/images/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./Assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0a0f"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./Assets/images/adaptive-icon.png",
+        "backgroundColor": "#0a0a0f"
+      },
+      "package": "com.shiro.ai"
+    },
+    "web": {
+      "favicon": "./Assets/images/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "local-project"
+      }
+    }
+  }
+}

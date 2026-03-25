@@ -1,0 +1,12 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CLASSES_ROOT\shiro]
+@="URL:Shiro AI Protocol"
+"URL Protocol"=""
+
+[HKEY_CLASSES_ROOT\shiro\shell]
+
+[HKEY_CLASSES_ROOT\shiro\shell\open]
+
+[HKEY_CLASSES_ROOT\shiro\shell\open\command]
+@="cmd.exe /c \"cd /d C:\\Users\\USER\\shiro && Start_Shiro.bat\""

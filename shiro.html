@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shiro AI — Local Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+/* ========== RESET & TOKENS ========== */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0f;
+  --surface:#12121a;
+  --surface2:#1a1a26;
+  --border:rgba(255,255,255,0.08);
+  --primary:#7c6aff;
+  --primary2:#ff4b9a;
+  --accent:#00d4ff;
+  --text:#e8e8f0;
+  --muted:#6b6b80;
+  --success:#00c896;
+  --danger:#ff4757;
+  --font:'Inter',sans-serif;
+  --heading:'Outfit',sans-serif;
+  --radius:14px;
+  --sidebar:260px;
+  --trans:.2s ease;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);height:100vh;overflow:hidden;display:flex;}
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+* {scrollbar-width: thin; scrollbar-color: var(--border) transparent;}
+
+/* ========== SIDEBAR ========== */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:20px 12px;gap:6px;
+  position:relative;overflow:hidden;
+}
+.sidebar::before{
+  content:'';position:absolute;top:-60px;left:-60px;
+  width:200px;height:200px;
+  background:radial-gradient(circle,rgba(124,106,255,0.15),transparent 70%);
+  pointer-events:none;
+}
+.logo{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px 20px;
+  font-family:var(--heading);font-size:1.4rem;font-weight:800;
+  text-decoration:none;color:var(--text);
+}
+.logo i{
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.logo span{color:var(--primary);}
+
+.nav-section{font-size:.65rem;font-weight:700;letter-spacing:1.2px;color:var(--muted);padding:12px 14px 6px;text-transform:uppercase;}
+
+.nav-item{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;border-radius:10px;
+  cursor:pointer;color:var(--muted);font-size:.9rem;
+  transition:all var(--trans);text-decoration:none;
+  border:1px solid transparent;
+  user-select:none;
+}
+.nav-item i{width:18px;text-align:center;font-size:1rem;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.04);}
+.nav-item.active{
+  color:var(--text);
+  background:rgba(124,106,255,0.15);
+  border-color:rgba(124,106,255,0.25);
+}
+.nav-item.active i{color:var(--primary);}
+.nav-item.danger{color:var(--danger);}
+.nav-item.danger:hover{background:rgba(255,71,87,0.08);}
+
+.sidebar-footer{margin-top:auto;border-top:1px solid var(--border);padding-top:12px;display:flex;flex-direction:column;gap:4px;}
+
+.user-card{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:10px;
+  background:rgba(255,255,255,0.03);
+  margin-top:6px;
+}
+.user-avatar{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:.9rem;color:white;flex-shrink:0;
+}
+.user-name{font-size:.85rem;font-weight:600;color:var(--text);}
+.user-sub{font-size:.72rem;color:var(--primary);}
+
+/* ========== MAIN AREA ========== */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+.studio{display:none;flex-direction:column;height:100%;animation:fadeUp .3s ease;}
+.studio.active{display:flex;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+/* ========== CHAT STUDIO ========== */
+.chat-top{
+  padding:18px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface);backdrop-filter:blur(10px);
+}
+.chat-top h2{font-family:var(--heading);font-size:1.2rem;font-weight:700;}
+.badge{
+  font-size:.65rem;padding:3px 10px;border-radius:30px;
+  background:rgba(124,106,255,0.2);color:var(--primary);
+  font-family:var(--font);font-weight:600;letter-spacing:.5px;
+}
+.model-pill{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  padding:5px 12px;border-radius:30px;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  font-size:.8rem;color:var(--muted);cursor:pointer;
+  transition:var(--trans);
+}
+.model-pill:hover{border-color:var(--primary);color:var(--primary);}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+.messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;}
+
+.msg{display:flex;gap:12px;max-width:100%;}
+.msg.user{flex-direction:row-reverse;}
+.msg-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.85rem;
+}
+.msg.ai .msg-avatar{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white;}
+.msg.user .msg-avatar{background:linear-gradient(135deg,#3a86ff,#00b4d8);color:white;font-weight:700;}
+.msg-bubble{
+  padding:12px 16px;border-radius:14px;
+  max-width:75%;line-height:1.65;font-size:.92rem;
+}
+.msg.ai .msg-bubble{background:var(--surface2);border:1px solid var(--border);}
+.msg.user .msg-bubble{
+  background:linear-gradient(135deg,rgba(124,106,255,0.25),rgba(255,75,154,0.15));
+  border:1px solid rgba(124,106,255,0.3);
+}
+.msg-bubble code{background:rgba(0,0,0,0.4);padding:2px 6px;border-radius:4px;font-size:.85em;}
+.msg-bubble pre{background:rgba(0,0,0,0.4);padding:12px;border-radius:8px;overflow-x:auto;margin:8px 0;font-size:.85em;}
+.msg-bubble strong{color:#c4b5ff;}
+
+.typing{display:inline-flex;gap:4px;padding:4px 0;}
+.typing span{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--primary);opacity:.5;
+  animation:typing-bounce 1.4s infinite ease-in-out;
+}
+.typing span:nth-child(1){animation-delay:-.32s;}
+.typing span:nth-child(2){animation-delay:-.16s;}
+@keyframes typing-bounce{0%,80%,100%{transform:scale(0.4);opacity:.3;}40%{transform:scale(1);opacity:1;}}
+
+/* Chat input */
+.chat-bottom{padding:16px 24px 20px;background:var(--surface);}
+.file-preview{
+  display:none; align-items:center; gap:10px;
+  padding:8px 14px;margin-bottom:10px;
+  background:rgba(124,106,255,0.1);border:1px solid rgba(124,106,255,0.25);
+  border-radius:10px;font-size:.85rem;
+}
+.file-preview img{height:36px;width:36px;object-fit:cover;border-radius:6px;}
+.file-preview span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-preview .rm{background:none;border:none;color:var(--danger);cursor:pointer;font-size:1rem;padding:0 4px;}
+.input-row{
+  display:flex;align-items:flex-end;gap:10px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:10px 14px;
+  transition:border-color var(--trans);
+}
+.input-row:focus-within{border-color:var(--primary);}
+.input-row textarea{
+  flex:1;background:none;border:none;outline:none;
+  color:var(--text);font-family:var(--font);font-size:.95rem;
+  resize:none;max-height:140px;padding:4px 0;line-height:1.5;
+}
+.input-row textarea::placeholder{color:var(--muted);}
+.input-btns{display:flex;gap:6px;padding-bottom:2px;}
+.icon-btn{
+  width:34px;height:34px;border-radius:50%;border:none;
+  background:rgba(255,255,255,0.06);color:var(--muted);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:.95rem;transition:all var(--trans);
+}
+.icon-btn:hover{background:rgba(124,106,255,0.2);color:var(--primary);}
+.send-btn{background:linear-gradient(135deg,var(--primary),var(--primary2));color:white!important;}
+.send-btn:hover{opacity:.85;transform:scale(1.05);}
+.chat-hint{text-align:center;font-size:.72rem;color:var(--muted);margin-top:8px;}
+
+/* ========== GEN STUDIOS ========== */
+.studio-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.studio-hdr{padding:24px 28px 16px;}
+.studio-hdr h2{font-family:var(--heading);font-size:1.4rem;font-weight:800;}
+.studio-hdr p{color:var(--muted);font-size:.9rem;margin-top:4px;}
+
+.gen-body{flex:1;overflow-y:auto;display:grid;grid-template-columns:380px 1fr;gap:20px;padding:0 28px 28px;}
+.prompt-panel{display:flex;flex-direction:column;gap:14px;}
+.panel-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px;
+}
+.panel-label{font-size:.75rem;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px;}
+.panel-card textarea, .panel-card input[type=text]{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:9px;padding:11px 13px;color:var(--text);
+  font-family:var(--font);font-size:.9rem;resize:none;outline:none;
+  transition:border-color var(--trans);
+}
+.panel-card textarea::placeholder, .panel-card input[type=text]::placeholder{color:var(--muted);}
+.panel-card textarea:focus, .panel-card input[type=text]:focus{border-color:var(--primary);}
+.panel-card textarea{height:110px;}
+
+.gen-btn{
+  width:100%;padding:13px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:white;font-size:.95rem;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:all var(--trans);font-family:var(--font);
+}
+.gen-btn:hover{opacity:.88;transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,106,255,0.35);}
+.gen-btn:active{transform:none;}
+.gen-btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+
+.quality-row{display:flex;gap:8px;}
+.quality-btn{
+  flex:1;padding:7px;border-radius:8px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--muted);font-size:.8rem;
+  cursor:pointer;transition:all var(--trans);font-family:var(--font);
+}
+.quality-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(124,106,255,0.12);}
+
+/* Output panel */
+.output-panel{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);display:flex;align-items:center;
+  justify-content:center;min-height:350px;overflow:hidden;padding:20px;
+}
+.empty-art{text-align:center;color:var(--muted);}
+.empty-art i{font-size:3.5rem;opacity:.25;margin-bottom:14px;display:block;}
+.empty-art p{font-size:.9rem;}
+.empty-art small{font-size:.78rem;opacity:.6;display:block;margin-top:4px;}
+
+.result-box{width:100%;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.result-box img,.result-box video{
+  width:100%;max-height:380px;object-fit:contain;
+  border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,0.6);
+}
+.result-meta{text-align:center;}
+.result-meta h3{font-family:var(--heading);font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.result-meta p{font-size:.82rem;color:var(--muted);}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 22px;border-radius:30px;text-decoration:none;
+  background:linear-gradient(135deg,var(--primary),var(--primary2));
+  color:white;font-size:.88rem;font-weight:600;
+  transition:all var(--trans);
+}
+.dl-btn:hover{opacity:.85;transform:translateY(-1px);}
+
+/* loader */
+.loader-spin{
+  width:48px;height:48px;border-radius:50%;
+  border:4px solid rgba(124,106,255,0.2);
+  border-top-color:var(--primary);
+  animation:spin 0.9s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-text{text-align:center;margin-top:16px;}
+.load-text p{color:var(--muted);font-size:.9rem;}
+.load-text small{color:#ffd700;font-size:.78rem;display:block;margin-top:6px;max-width:280px;}
+
+/* error box */
+.err-box{
+  text-align:center;padding:2rem;
+  border:1px solid rgba(255,71,87,0.3);
+  background:rgba(255,71,87,0.06);border-radius:12px;
+  width:100%;
+}
+.err-box i{font-size:2rem;color:var(--danger);display:block;margin-bottom:10px;}
+.err-box p{font-weight:600;margin-bottom:6px;}
+.err-box small{font-size:.8rem;color:var(--muted);}
+.err-box code{font-size:.75rem;background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;}
+
+/* ========== SETTINGS MODAL ========== */
+.overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:20px;padding:28px;width:520px;max-width:90vw;
+  transform:scale(.94) translateY(16px);transition:all .25s ease;
+  box-shadow:0 24px 60px rgba(0,0,0,.6);
+}
+.overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;}
+.modal-hdr h3{font-family:var(--heading);font-size:1.2rem;}
+.close-btn{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:2px;}
+.close-btn:hover{color:var(--text);}
+.setting-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 0;border-bottom:1px solid var(--border);gap:16px;
+}
+.setting-row:last-child{border-bottom:none;padding-bottom:0;}
+.setting-row h4{font-size:.95rem;margin-bottom:3px;}
+.setting-row p{font-size:.8rem;color:var(--muted);}
+.setting-row input[type=text]{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:8px;padding:8px 12px;color:var(--text);
+  font-family:var(--font);font-size:.85rem;outline:none;
+  width:200px;transition:border-color var(--trans);
+}
+.setting-row input[type=text]:focus{border-color:var(--primary);}
+/* toggle */
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-track{
+  position:absolute;inset:0;border-radius:30px;
+  background:#333;transition:.3s;cursor:pointer;
+}
+.toggle input:checked + .toggle-track{background:linear-gradient(135deg,var(--primary),var(--primary2));}
+.toggle-track::after{
+  content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+  background:white;top:3px;left:3px;transition:.3s;
+}
+.toggle input:checked + .toggle-track::after{left:23px;}
+</style>
+</head>
+<body>
+
+<!-- ====== SIDEBAR ====== -->
+<nav class="sidebar">
+  <a class="logo" href="index.html">
+    <i class="fa-solid fa-brain"></i>Shiro<span>.ai</span>
+  </a>
+
+  <div class="nav-section">Studios</div>
+
+  <div class="nav-item active" data-view="chat">
+    <i class="fa-regular fa-comment-dots"></i> AI Chat
+  </div>
+  <div class="nav-item" data-view="image">
+    <i class="fa-regular fa-image"></i> Image Studio
+  </div>
+  <div class="nav-item" data-view="video">
+    <i class="fa-solid fa-clapperboard"></i> Video Studio
+  </div>
+  <div class="nav-item" data-view="qr">
+    <i class="fa-solid fa-qrcode"></i> QR Studio
+  </div>
+
+  <div class="nav-section">Account</div>
+  <div class="nav-item" id="settings-nav-btn">
+    <i class="fa-solid fa-gear"></i> Settings
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="nav-item danger" id="logout-btn">
+      <i class="fa-solid fa-right-from-bracket"></i> Sign out
+    </div>
+    <div class="user-card">
+      <div class="user-avatar">A</div>
+      <div>
+        <div class="user-name">Ashwin AS</div>
+        <div class="user-sub">Chinmaya Vidyalaya</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ====== MAIN ====== -->
+<main class="main">
+
+  <!-- CHAT -->
+  <section class="studio active" id="view-chat">
+    <div class="chat-top">
+      <div style="background:linear-gradient(135deg,var(--primary),var(--primary2));border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+        <i class="fa-solid fa-brain" style="color:white;font-size:1rem;"></i>
+      </div>
+      <div>
+        <h2>Shiro AI <span class="badge">Local</span></h2>
+      </div>
+      <div class="model-pill" id="model-display">
+        <span class="status-dot"></span>
+        <span id="model-name-display">llama3.2</span>
+        <i class="fa-solid fa-chevron-down" style="font-size:.7rem;"></i>
+      </div>
+    </div>
+
+    <div class="messages" id="chat-messages">
+      <div class="msg ai">
+        <div class="msg-avatar"><i class="fa-solid fa-brain" style="font-size:.85rem;"></i></div>
+        <div class="msg-bubble">
+          Hey Ashwin! 👋 I'm <strong>Shiro AI</strong>, running entirely on your local machine from <strong>Chinmaya Vidyalaya</strong>'s favourite dev setup.<br><br>
+          I can chat, analyze files, look at images, and more. What shall we explore today?
+        </div>
+      </div>
+    </div>
+
+    <div class="chat-bottom">
+      <div class="file-preview" id="file-preview">
+        <img id="fp-img" src="" alt="">
+        <i class="fa-solid fa-file-alt" id="fp-icon" style="color:var(--primary);display:none;font-size:1.4rem;"></i>
+        <span id="fp-name"></span>
+        <button class="rm" id="fp-remove"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="input-row">
+        <textarea id="chat-input" rows="1" placeholder="Message Shiro AI… (Enter to send, Shift+Enter for newline)"></textarea>
+        <div class="input-btns">
+          <input type="file" id="file-input" style="display:none" accept="image/*,.txt,.md,.csv,.js,.py,.html,.css,.json">
+          <button class="icon-btn" id="attach-btn" title="Attach file"><i class="fa-solid fa-paperclip"></i></button>
+          <button class="icon-btn send-btn" id="send-btn" title="Send"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+      <div class="chat-hint">Shiro AI runs locally via <a href="https://github.com/mfoud444/ollamafreeapi" target="_blank" style="color:var(--primary);text-decoration:none;">OllamaFreeAPI</a> · responses may vary · verify important info</div>
+    </div>
+  </section>
+
+  <!-- IMAGE STUDIO -->
+  <section class="studio" id="view-image">
+    <div class="studio-wrap">
+      <div class="studio-hdr">
+        <h2><i class="fa-regular fa-image" style="color:var(--primary);margin-right:10px;"></i>Image Studio</h2>
+        <p>Generate stunning visuals from text prompts using local Stable Diffusion</p>
+      </div>
+      <div class="gen-body">
+        <div class="prompt-panel">
+          <div class="panel-card">
+            <div class="panel-label">Prompt</div>
+            <textarea id="image-prompt" placeholder="A cyberpunk city at night, neon lights reflecting on wet streets, cinematic 4K…"></textarea>
+          </div>
+          <div class="panel-card">
+            <div class="panel-label">Quality</div>
+            <div class="quality-row">
+              <button class="quality-btn active" data-steps="12">Fast</button>
+              <button class="quality-btn" data-steps="25">Balanced</button>
+              <button class="quality-btn" data-steps="40">Best</button>
+            </div>
+          </div>
+          <button class="gen-btn" id="gen-image-btn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Image
+          </button>
+        </div>
+        <div class="output-panel" id="image-output">
+          <div class="empty-art">
+            <i class="fa-regular fa-image"></i>
+            <p>Your generated image will appear here</p>
+            <small>Powered by local Stable Diffusion</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VIDEO STUDIO -->
+  <section class="studio" id="view-video">
+    <div class="studio-wrap">
+      <div class="studio-hdr">
+        <h2><i class="fa-solid fa-clapperboard" style="color:var(--primary2);margin-right:10px;"></i>Video Studio</h2>
+        <p>Generate short AI videos from text prompts — runs fully offline</p>
+      </div>
+      <div class="gen-body">
+        <div class="prompt-panel">
+          <div class="panel-card">
+            <div class="panel-label">Prompt</div>
+            <textarea id="video-prompt" placeholder="A timelapse of clouds moving over a mountain range at golden hour…"></textarea>
+          </div>
+          <div class="panel-card">
+            <div class="panel-label">Speed</div>
+            <div class="quality-row">
+              <button class="quality-btn v-q active" data-frames="8" data-steps="8">Fast (8f)</button>
+              <button class="quality-btn v-q" data-frames="12" data-steps="12">Normal (12f)</button>
+              <button class="quality-btn v-q" data-frames="16" data-steps="18">Quality (16f)</button>
+            </div>
+          </div>
+          <button class="gen-btn" id="gen-video-btn">
+            <i class="fa-solid fa-film"></i> Generate Video
+          </button>
+        </div>
+        <div class="output-panel" id="video-output">
+          <div class="empty-art">
+            <i class="fa-solid fa-film"></i>
+            <p>Your generated video will appear here</p>
+            <small>Uses local Text-to-Video model (downloads ~1.7B on first use)</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QR STUDIO -->
+  <section class="studio" id="view-qr">
+    <div class="studio-wrap">
+      <div class="studio-hdr">
+        <h2><i class="fa-solid fa-qrcode" style="color:var(--accent);margin-right:10px;"></i>QR Studio</h2>
+        <p>Generate beautiful, downloadable QR codes instantly — no backend needed</p>
+      </div>
+      <div class="gen-body">
+        <div class="prompt-panel">
+          <div class="panel-card">
+            <div class="panel-label">URL / Text to Encode</div>
+            <input type="text" id="qr-url" placeholder="https://example.com or any text…">
+          </div>
+          <div class="panel-card">
+            <div class="panel-label">Color Theme</div>
+            <div class="quality-row">
+              <button class="quality-btn qr-c active" data-fg="7c6aff" data-bg="0a0a0f">Purple</button>
+              <button class="quality-btn qr-c" data-fg="ff4b9a" data-bg="0a0a0f">Pink</button>
+              <button class="quality-btn qr-c" data-fg="00d4ff" data-bg="0a0a0f">Cyan</button>
+              <button class="quality-btn qr-c" data-fg="000000" data-bg="ffffff">Classic</button>
+            </div>
+          </div>
+          <div class="panel-card">
+            <div class="panel-label">Size</div>
+            <div class="quality-row">
+              <button class="quality-btn qr-s active" data-size="200">Small</button>
+              <button class="quality-btn qr-s" data-size="300">Medium</button>
+              <button class="quality-btn qr-s" data-size="400">Large</button>
+            </div>
+          </div>
+          <button class="gen-btn" id="gen-qr-btn">
+            <i class="fa-solid fa-qrcode"></i> Generate QR Code
+          </button>
+        </div>
+        <div class="output-panel" id="qr-output">
+          <div class="empty-art">
+            <i class="fa-solid fa-qrcode"></i>
+            <p>Your QR code will appear here</p>
+            <small>Works instantly — no backend needed</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ====== SETTINGS MODAL ====== -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3><i class="fa-solid fa-gear" style="color:var(--primary);margin-right:8px;"></i>Settings</h3>
+      <button class="close-btn" id="close-settings"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="setting-row">
+      <div><h4>Ollama Host</h4><p>Base URL for your local Ollama instance</p></div>
+      <input type="text" id="s-host" value="http://localhost:11434" placeholder="http://localhost:11434">
+    </div>
+    <div class="setting-row">
+      <div><h4>Chat Model</h4><p>Ollama model name for chat (e.g. llama3.2, mistral)</p></div>
+      <input type="text" id="s-model" value="llama3.2" placeholder="llama3.2">
+    </div>
+    <div class="setting-row">
+      <div><h4>Vision Model</h4><p>Used when attaching an image</p></div>
+      <input type="text" id="s-vision" value="llava" placeholder="llava">
+    </div>
+    <div class="setting-row">
+      <div><h4>Backend API</h4><p>Python backend URL for image/video generation</p></div>
+      <input type="text" id="s-backend" value="http://localhost:8000" placeholder="http://localhost:8000">
+    </div>
+    <div class="setting-row">
+      <div><h4>Remote Tunnel (HTTPS)</h4><p>Use your Ngrok/Cloudflare URL if on Netlify</p></div>
+      <input type="text" id="s-remote" value="" placeholder="https://random-id.ngrok-free.app">
+    </div>
+    <div class="setting-row">
+      <div><h4>OpenRouter API Key</h4><p>Use cloud AI instead of local Ollama (Free models fallback)</p></div>
+      <input type="text" id="s-or-key" value="" placeholder="sk-or-v1-...">
+    </div>
+
+    <div class="setting-row">
+      <div><h4>Hugging Face Token</h4><p>Use cloud HF API for Image & Video Generation</p></div>
+      <input type="text" id="s-hf-token" value="" placeholder="hf_...">
+    </div>
+
+    <div class="setting-row">
+      <div><h4>Qwen API Key</h4><p>Use Qwen3-Coder-480B-A35B-Instruct model API</p></div>
+      <input type="text" id="s-qwen-key" value="" placeholder="sk-...">
+    </div>
+
+    <div class="setting-row">
+      <div><h4>Qwen API Endpoint</h4><p>Base URL (Netmind, Together, DashScope, etc.)</p></div>
+      <input type="text" id="s-qwen-url" value="https://api.netmind.ai/inference-api/openai/v1/chat/completions" placeholder="https://.../v1/chat/completions">
+    </div>
+
+    <div class="setting-row">
+      <div><h4>Stream Responses</h4><p>Show AI text as it's being generated</p></div>
+      <label class="toggle"><input type="checkbox" id="s-stream" checked><span class="toggle-track"></span></label>
+    </div>
+    <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+      <button class="gen-btn" id="check-conn-btn" style="background:var(--surface2); border:1px solid var(--primary); color:var(--primary); margin-bottom:15px;">
+        <i class="fa-solid fa-signal"></i> Check Connectivity
+      </button>
+      <div id="conn-status" style="font-size:0.85rem; margin-bottom:15px; display:none;"></div>
+      
+      <button id="reset-settings" style="background:none; border:1px solid rgba(255,165,0,0.3); color:orange; font-size:0.8rem; padding: 10px; width:100%; border-radius:10px; cursor:pointer; margin-bottom:15px;">
+        <i class="fa-solid fa-rotate-left"></i> Reset Defaults (Fix Stale Tunnel)
+      </button>
+      
+    <div id="https-warning" style="display:none; background:rgba(255,165,0,0.1); border-left:3px solid orange; padding:10px; margin-bottom:15px; font-size:0.8rem; color:#ffb347;">
+      <i class="fa-solid fa-triangle-exclamation"></i> <b>Mixed Content:</b> You are on an HTTPS site (Netlify). You must use an <b>HTTPS Tunnel URL</b> (Ngrok/Cloudflare) to reach your local AI.
+    </div>
+
+    <div style="background:rgba(255,255,255,0.03); border-radius:10px; padding:15px; font-size:0.85rem;">
+      <h4 style="color:var(--primary); margin-bottom:8px;"><i class="fa-solid fa-rocket"></i> Netlify Deployment Guide</h4>
+      <p style="color:var(--muted); line-height:1.4; margin-bottom:10px;">
+        To use Shiro AI on Netlify, you must allow CORS in Ollama:
+      </p>
+
+        <ol style="color:var(--muted); padding-left:20px; line-height:1.4;">
+          <li>Set Env Var: <code>OLLAMA_ORIGINS</code></li>
+          <li>Value: <code>https://your-site.netlify.app</code> (or <code>*</code>)</li>
+          <li>Restart Ollama completely.</li>
+        </ol>
+        <p style="margin-top:10px; font-size:0.75rem; color:var(--primary);">
+          <i class="fa-solid fa-link"></i> For remote access, use <b>Ngrok</b> or <b>Cloudflare Tunnel</b>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ================================================================
+// SHIRO AI — SCRIPT
+// ================================================================
+
+// -------- SETTINGS --------
+const DEFAULTS = {
+  host: 'http://localhost:11434',
+  model: 'llama3.2',
+  vision: 'llava',
+  backend: 'http://localhost:8000',
+  remote: 'https://prevent-receipt-verified-puzzle.trycloudflare.com',
+  openRouterKey: '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',
+  hfToken: '',
+  qwenKey: '2c21ab1c-bfaa-427a-9c59-cee525376871',
+  qwenUrl: 'https://api.netmind.ai/inference-api/openai/v1/chat/completions',
+  stream: true
+};
+
+function loadSettings() {
+  const s = JSON.parse(localStorage.getItem('shiro_settings') || '{}');
+  const merged = { ...DEFAULTS, ...s };
+  
+  // Auto-Fix for yesterday's stale tunnel
+  if (merged.remote && merged.remote.includes('blackjack-newport')) {
+    merged.remote = DEFAULTS.remote;
+    saveSettings(merged);
+  }
+
+  // Auto-switch to remote if on HTTPS and remote is available
+  if (location.protocol === 'https:' && merged.remote) {
+    merged.actualHost = merged.remote;
+    merged.actualBackend = merged.remote;
+  } else {
+    merged.actualHost = merged.host;
+    merged.actualBackend = merged.backend;
+  }
+  return merged;
+}
+
+function saveSettings(s) {
+  localStorage.setItem('shiro_settings', JSON.stringify(s));
+}
+
+function applySettingsToUI() {
+  const s = loadSettings();
+  document.getElementById('s-host').value   = s.host;
+  document.getElementById('s-model').value  = s.model;
+  document.getElementById('s-vision').value = s.vision;
+  document.getElementById('s-backend').value= s.backend;
+  document.getElementById('s-remote').value = s.remote;
+  document.getElementById('s-or-key').value = s.openRouterKey || '';
+  document.getElementById('s-hf-token').value = s.hfToken || '';
+  document.getElementById('s-qwen-key').value = s.qwenKey || '';
+  document.getElementById('s-qwen-url').value = s.qwenUrl || 'https://api.netmind.ai/inference-api/openai/v1/chat/completions';
+  document.getElementById('s-stream').checked = s.stream;
+  document.getElementById('model-name-display').textContent = s.model;
+  
+  if (location.protocol === 'https:') {
+    document.getElementById('https-warning').style.display = 'block';
+  }
+}
+
+
+// -------- NAVIGATION --------
+document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item[data-view]').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.studio').forEach(s => s.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('view-' + item.dataset.view).classList.add('active');
+  });
+});
+
+// -------- SETTINGS MODAL --------
+const overlay = document.getElementById('settings-overlay');
+document.getElementById('settings-nav-btn').addEventListener('click', () => {
+  applySettingsToUI();
+  overlay.classList.add('open');
+});
+document.getElementById('close-settings').addEventListener('click', () => {
+  // Save on close
+  const s = loadSettings();
+  s.host    = document.getElementById('s-host').value.trim();
+  s.model   = document.getElementById('s-model').value.trim();
+  s.vision  = document.getElementById('s-vision').value.trim();
+  s.backend = document.getElementById('s-backend').value.trim();
+  s.remote  = document.getElementById('s-remote').value.trim();
+  s.openRouterKey = document.getElementById('s-or-key').value.trim();
+  s.hfToken = document.getElementById('s-hf-token').value.trim();
+  s.qwenKey  = document.getElementById('s-qwen-key').value.trim();
+  s.qwenUrl  = document.getElementById('s-qwen-url').value.trim();
+  s.stream  = document.getElementById('s-stream').checked;
+  saveSettings(s);
+
+  document.getElementById('model-name-display').textContent = s.model;
+  overlay.classList.remove('open');
+});
+
+document.getElementById('reset-settings').addEventListener('click', () => {
+  if (confirm('Reset all settings to defaults?')) {
+    localStorage.removeItem('shiro_settings');
+    applySettingsToUI();
+    alert('Settings reset! Close and reopen to apply.');
+  }
+});
+
+// -------- CONNECTIVITY CHECK --------
+document.getElementById('check-conn-btn').addEventListener('click', async () => {
+  const statusDiv = document.getElementById('conn-status');
+  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Checking connections...';
+  
+  const host = s.actualHost;
+  const backend = s.actualBackend;
+
+  
+  let results = [];
+  
+  // Check Ollama
+  try {
+    const res = await fetch(`${host}/api/tags`, { mode: 'cors' });
+    if (res.ok) results.push('<span style="color:var(--success);">✓ Ollama Online</span>');
+    else results.push('<span style="color:var(--danger);">✗ Ollama Error</span>');
+  } catch (e) {
+    results.push('<span style="color:var(--danger);">✗ Ollama Unreachable (Check CORS/Origins)</span>');
+  }
+  
+  // Check Backend
+  try {
+    const res = await fetch(`${backend}/status`, { mode: 'cors' });
+    if (res.ok) results.push('<span style="color:var(--success);">✓ Backend Online</span>');
+    else results.push('<span style="color:var(--danger);">✗ Backend Error</span>');
+  } catch (e) {
+    results.push('<span style="color:var(--danger);">✗ Backend Offline (Run Start_Shiro.bat)</span>');
+  }
+  
+  statusDiv.innerHTML = results.join('<br>');
+});
+
+overlay.addEventListener('click', e => { if (e.target === overlay) document.getElementById('close-settings').click(); });
+
+
+// -------- LOGOUT --------
+document.getElementById('logout-btn').addEventListener('click', () => {
+  if (confirm('Sign out of Shiro AI?')) {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  }
+});
+
+// ================================================================
+// CHAT STUDIO
+// ================================================================
+const chatMessages  = document.getElementById('chat-messages');
+const chatInput     = document.getElementById('chat-input');
+const sendBtn       = document.getElementById('send-btn');
+const attachBtn     = document.getElementById('attach-btn');
+const fileInput     = document.getElementById('file-input');
+const filePreview   = document.getElementById('file-preview');
+const fpImg         = document.getElementById('fp-img');
+const fpIcon        = document.getElementById('fp-icon');
+const fpName        = document.getElementById('fp-name');
+const fpRemove      = document.getElementById('fp-remove');
+
+let attachedFile    = null;
+let attachedContent = null;
+let attachedIsImage = false;
+
+// Auto-resize textarea
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 140) + 'px';
+});
+
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+});
+sendBtn.addEventListener('click', doSend);
+
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  attachedFile = f;
+  attachedIsImage = f.type.startsWith('image/');
+  fpName.textContent = f.name;
+  filePreview.style.display = 'flex';
+
+  if (attachedIsImage) {
+    fpIcon.style.display = 'none';
+    fpImg.style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = ev => {
+      fpImg.src = ev.target.result;
+      attachedContent = ev.target.result.split(',')[1];
+    };
+    reader.readAsDataURL(f);
+  } else {
+    fpImg.style.display = 'none';
+    fpIcon.style.display = 'block';
+    const reader = new FileReader();
+    reader.onload = ev => { attachedContent = ev.target.result; };
+    reader.readAsText(f);
+  }
+});
+
+fpRemove.addEventListener('click', clearAttachment);
+function clearAttachment() {
+  attachedFile = attachedContent = null;
+  attachedIsImage = false;
+  fileInput.value = '';
+  filePreview.style.display = 'none';
+  fpImg.style.display = 'none';
+  fpImg.src = '';
+}
+
+function addMsg(role, html, id = null) {
+  const wrap = document.createElement('div');
+  wrap.className = `msg ${role}`;
+  if (id) wrap.id = id;
+
+  const avatar = document.createElement('div');
+  avatar.className = 'msg-avatar';
+  avatar.innerHTML = role === 'ai' ? '<i class="fa-solid fa-brain" style="font-size:.85rem;"></i>' : 'A';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'msg-bubble';
+  bubble.innerHTML = html;
+
+  wrap.appendChild(avatar);
+  wrap.appendChild(bubble);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return wrap;
+}
+
+function updateMsg(id, html) {
+  const el = document.getElementById(id);
+  if (el) { el.querySelector('.msg-bubble').innerHTML = html; chatMessages.scrollTop = chatMessages.scrollHeight; }
+}
+
+function mdToHtml(text) {
+  return text
+    .replace(/```(\w*)\n?([\s\S]*?)```/g, (_,lang,code) => `<pre><code>${escHtml(code.trim())}</code></pre>`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n/g, '<br>');
+}
+
+function escHtml(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function doSend() {
+  const raw = chatInput.value.trim();
+  if (!raw && !attachedFile) return;
+
+  const s = loadSettings();
+  let prompt = raw;
+  let images = null;
+
+  // Build user bubble
+  let userHtml = escHtml(raw);
+  if (attachedFile) {
+    if (attachedIsImage) {
+      images = [attachedContent];
+      userHtml = `<img src="data:image/*;base64,${attachedContent}" style="max-width:220px;border-radius:8px;display:block;margin-bottom:6px;">${userHtml}`;
+      prompt = raw || 'Please describe this image in detail.';
+    } else {
+      prompt = `File: "${attachedFile.name}"\n\n---\n${attachedContent}\n---\n\n${raw || 'Analyze this file.'}`;
+      userHtml = `<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(124,106,255,0.1);border-radius:6px;margin-bottom:6px;font-size:.82rem;"><i class="fa-solid fa-file" style="color:var(--primary);"></i>${escHtml(attachedFile.name)}</div>${userHtml}`;
+    }
+  }
+
+  addMsg('user', userHtml);
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  clearAttachment();
+
+  const mid = `m${Date.now()}`;
+  addMsg('ai', '<div class="typing"><span></span><span></span><span></span></div>', mid);
+
+  const model = (images ? s.vision : s.model) || 'llama3.2';
+
+  const ollamaBase = s.actualHost || 'http://localhost:11434';
+  const useOpenRouter = s.openRouterKey && s.openRouterKey.trim() !== '';
+  const useQwen = s.qwenKey && s.qwenKey.trim() !== '';
+
+  try {
+    let res, isSse = false;
+
+    if (useQwen) {
+      const qwenModel = "Qwen3-Coder-480B-A35B-Instruct";
+      const actualModel = model !== 'llama3.2' ? model : qwenModel;
+      
+      const body = {
+        model: actualModel,
+        messages: [{ role: "user", content: prompt }],
+        stream: s.stream
+      };
+
+      if (images && images.length > 0) {
+        body.messages[0].content = [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${images[0]}` } }
+        ];
+      }
+
+      const endpoint = s.qwenUrl && s.qwenUrl.trim() !== '' ? s.qwenUrl : "https://api.netmind.ai/inference-api/openai/v1/chat/completions";
+      
+      res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${s.qwenKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      isSse = true;
+    } else if (useOpenRouter) {
+      const isLlamaDefault = model.includes('llama3.2') && !images;
+      const orModel = isLlamaDefault ? 'meta-llama/llama-3.2-3b-instruct:free' : 
+                      (images ? 'google/gemini-2.0-pro-exp-02-05:free' : model);
+
+      const body = {
+        model: orModel,
+        messages: [{ role: "user", content: prompt }],
+        stream: s.stream
+      };
+
+      if (images && images.length > 0) {
+        body.messages[0].content = [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: `data:image/jpeg;base64,${images[0]}` } }
+        ];
+      }
+
+      res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${s.openRouterKey}`,
+          "HTTP-Referer": window.location.href,
+          "X-Title": "Shiro AI Studio",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+      isSse = true;
+    } else {
+      const body = { model, prompt, stream: s.stream };
+      if (images) body.images = images;
+
+      res = await fetch(`${ollamaBase}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+    }
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    if (s.stream) {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let fullText = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = dec.decode(value, { stream: true });
+        
+        for (let line of chunk.split('\n')) {
+          line = line.trim();
+          if (!line) continue;
+          
+          if (isSse) {
+            if (line.startsWith('data: ')) {
+              line = line.substring(6);
+              if (line === '[DONE]') continue;
+              try {
+                const j = JSON.parse(line);
+                const delta = j.choices?.[0]?.delta?.content || '';
+                if (delta) {
+                  fullText += delta;
+                  updateMsg(mid, mdToHtml(fullText) + '<span style="opacity:.4;">▌</span>');
+                }
+              } catch {}
+            }
+          } else {
+            try {
+              const j = JSON.parse(line);
+              if (j.response) { 
+                fullText += j.response; 
+                updateMsg(mid, mdToHtml(fullText) + '<span style="opacity:.4;">▌</span>'); 
+              }
+            } catch {}
+          }
+        }
+      }
+      updateMsg(mid, mdToHtml(fullText));
+    } else {
+      const data = await res.json();
+      if (isSse) {
+        updateMsg(mid, mdToHtml(data.choices?.[0]?.message?.content || '(no response)'));
+      } else {
+        updateMsg(mid, mdToHtml(data.response || '(no response)'));
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    const errHtml = useQwen
+      ? `<span style="color:var(--danger);"><strong>⚠ Qwen API Error</strong></span><br>Could not reach Qwen API.<br><strong>How to fix:</strong><br>Check if your Qwen API Key and URL are valid in Settings.<br><br><small style="color:var(--muted);">Error: ${escHtml(err.message)}</small>`
+      : useOpenRouter 
+      ? `<span style="color:var(--danger);"><strong>⚠ OpenRouter API Error</strong></span><br>Could not reach OpenRouter.<br><strong>How to fix:</strong><br>Check if your API Key is valid in Settings.<br><br><small style="color:var(--muted);">Error: ${escHtml(err.message)}</small>`
+      : `<span style="color:var(--danger);"><strong>⚠ Connection Error</strong></span><br>Could not reach Ollama at <code>${ollamaBase}</code><br><br><strong>How to fix:</strong><br>1. Open a terminal and run: <code>ollama serve</code><br>2. Pull the model: <code>ollama pull ${model}</code><br>3. Check Settings → Ollama Host is correct<br><br><small style="color:var(--muted);">Error: ${escHtml(err.message)}</small>`;
+    updateMsg(mid, errHtml);
+  }
+}
+
+// ================================================================
+// IMAGE STUDIO
+// ================================================================
+let imageSteps = 12;
+
+document.querySelectorAll('.quality-btn[data-steps]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.quality-btn[data-steps]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    imageSteps = Number(btn.dataset.steps);
+  });
+});
+
+document.getElementById('gen-image-btn').addEventListener('click', async () => {
+  const prompt = document.getElementById('image-prompt').value.trim();
+  if (!prompt) { alert('Enter a prompt first!'); return; }
+  const output = document.getElementById('image-output');
+  const s = loadSettings();
+  const btn = document.getElementById('gen-image-btn');
+
+  btn.disabled = true;
+  output.innerHTML = `
+    <div style="text-align:center;">
+      <div class="loader-spin"></div>
+      <div class="load-text">
+        <p>Generating image…</p>
+        <small>⚡ First run downloads model (~1GB). Don't close the browser!</small>
+      </div>
+    </div>`;
+
+  try {
+    let b64Result;
+    let isUrl = false;
+    
+    // Helper to fallback to pollinations
+    const fallbackPollinations = () => {
+      console.warn("Falling back to Pollinations API.");
+      b64Result = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
+      isUrl = true;
+    };
+
+    if (s.hfToken) {
+      // Cloud HF API
+      try {
+        const hfRes = await fetch("https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0", {
+          method: "POST",
+          headers: { 
+            "Authorization": `Bearer ${s.hfToken}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ inputs: prompt })
+        });
+        if (!hfRes.ok) throw new Error("Hugging Face API Error: " + hfRes.statusText);
+        const blob = await hfRes.blob();
+        b64Result = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(blob);
+        });
+      } catch (err) {
+        fallbackPollinations();
+      }
+    } else {
+      // Local Backend
+      try {
+        const res = await fetch(`${s.actualBackend}/api/generate-image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt, num_inference_steps: imageSteps })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.detail || data.message || 'Failed');
+        b64Result = data.image_base64;
+      } catch (err) {
+        fallbackPollinations();
+      }
+    }
+
+    output.innerHTML = `
+      <div class="result-box">
+        <img src="${b64Result}" alt="Generated image">
+        <div class="result-meta">
+          <h3>✨ Image Generated!</h3>
+          <p style="margin-bottom:10px;">"${escHtml(prompt.slice(0,60))}${prompt.length>60?'..':''}"</p>
+          ${!isUrl ? `<button class="dl-btn" onclick="downloadFile('${b64Result}', 'shiro-image.png')">
+            <i class="fa-solid fa-download"></i> Download PNG
+          </button>` : `<a href="${b64Result}" target="_blank" class="dl-btn" style="text-decoration:none;display:inline-block;text-align:center;"><i class="fa-solid fa-external-link"></i> Open Full Image</a>`}
+        </div>
+      </div>`;
+  } catch (err) {
+    output.innerHTML = `
+      <div class="err-box">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <p>Image Generation Failed</p>
+        <small>${escHtml(err.message)}<br>If using local UI, ensure Python backend is running. If using cloud, check your Hugging Face Token.</small>
+      </div>`;
+  } finally { btn.disabled = false; }
+});
+
+// ================================================================
+// VIDEO STUDIO
+// ================================================================
+let videoFrames = 8, videoSteps = 8;
+
+document.querySelectorAll('.quality-btn.v-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.quality-btn.v-q').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    videoFrames = Number(btn.dataset.frames);
+    videoSteps  = Number(btn.dataset.steps);
+  });
+});
+
+document.getElementById('gen-video-btn').addEventListener('click', async () => {
+  const prompt = document.getElementById('video-prompt').value.trim();
+  if (!prompt) { alert('Enter a prompt first!'); return; }
+  const output = document.getElementById('video-output');
+  const s = loadSettings();
+  const btn = document.getElementById('gen-video-btn');
+
+  btn.disabled = true;
+  output.innerHTML = `
+    <div style="text-align:center;">
+      <div class="loader-spin" style="border-top-color:var(--primary2);"></div>
+      <div class="load-text">
+        <p>Generating video…</p>
+        <small>⚡ First run downloads the video model. This may take 5–10 mins. Please wait!</small>
+      </div>
+    </div>`;
+
+  try {
+    let b64Result;
+    if (s.hfToken) {
+      // Cloud HF API
+      const hfRes = await fetch("https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b", {
+        method: "POST",
+        headers: { 
+          "Authorization": `Bearer ${s.hfToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ inputs: prompt })
+      });
+      if (!hfRes.ok) throw new Error("Hugging Face API Error: " + hfRes.statusText + " (Often needs model to load)");
+      const blob = await hfRes.blob();
+      b64Result = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    } else {
+      // Local Backend
+      const res = await fetch(`${s.actualBackend}/api/generate-video`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, num_frames: videoFrames, num_inference_steps: videoSteps })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.detail || data.message || 'Failed');
+      b64Result = data.video_base64;
+    }
+
+    output.innerHTML = `
+      <div class="result-box">
+        <video src="${b64Result}" autoplay loop controls></video>
+        <div class="result-meta">
+          <h3>🎬 Video Generated!</h3>
+          <p style="margin-bottom:10px;">"${escHtml(prompt.slice(0,60))}${prompt.length>60?'..':''}"</p>
+          <button class="dl-btn" onclick="downloadFile('${b64Result}', 'shiro-video.mp4')">
+            <i class="fa-solid fa-download"></i> Download MP4
+          </button>
+        </div>
+      </div>`;
+  } catch (err) {
+    output.innerHTML = `
+      <div class="err-box">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <p>Video Generation Failed</p>
+        <small>${escHtml(err.message)}<br>If using cloud, wait a minute for model to load. If using local UI, ensure Python backend is running.</small>
+      </div>`;
+  } finally { btn.disabled = false; }
+});
+
+// ================================================================
+// QR STUDIO
+// ================================================================
+let qrFg = '7c6aff', qrBg = '0a0a0f', qrSize = 200;
+
+document.querySelectorAll('.quality-btn.qr-c').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.quality-btn.qr-c').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    qrFg = btn.dataset.fg; qrBg = btn.dataset.bg;
+  });
+});
+document.querySelectorAll('.quality-btn.qr-s').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.quality-btn.qr-s').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    qrSize = Number(btn.dataset.size);
+  });
+});
+
+document.getElementById('gen-qr-btn').addEventListener('click', () => {
+  const url = document.getElementById('qr-url').value.trim();
+  if (!url) { alert('Enter a URL or text!'); return; }
+  const output = document.getElementById('qr-output');
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(url)}&color=${qrFg}&bgcolor=${qrBg}&format=png&margin=10`;
+
+  output.innerHTML = `
+    <div class="result-box">
+      <img src="${qrUrl}" alt="QR Code" style="max-width:${qrSize}px;max-height:${qrSize}px;image-rendering:pixelated;">
+      <div class="result-meta">
+        <h3>📱 QR Code Ready!</h3>
+        <p style="margin-bottom:10px;word-break:break-all;">${escHtml(url.slice(0,60))}${url.length>60?'…':''}</p>
+        <a class="dl-btn" href="${qrUrl}" target="_blank" download="shiro-qr.png">
+          <i class="fa-solid fa-download"></i> Save QR Code
+        </a>
+      </div>
+    </div>`;
+});
+
+// ================================================================
+// INIT
+// ================================================================
+// -------- DOWNLOAD HELPER --------
+async function downloadFile(dataUri, filename) {
+  try {
+    const res = await fetch(dataUri);
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (e) {
+    console.error('Download failed', e);
+    // Fallback to direct link if fetch fails
+    const a = document.createElement('a');
+    a.href = dataUri;
+    a.download = filename;
+    a.click();
+  }
+}
+
+applySettingsToUI();
+</script>
+</body>
+</html>

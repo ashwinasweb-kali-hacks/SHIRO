@@ -1,0 +1,16 @@
+{
+  "name": "shiro-ollama-bridge",
+  "version": "1.0.0",
+  "description": "Backend bridge for Ollama",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-http-proxy": "^2.1.2",
+    "ollama": "^0.5.8"
+  }
+}

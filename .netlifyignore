@@ -1,0 +1,12 @@
+node_modules/
+Backend/venv/
+AppProject/
+.git/
+.github/
+Ollama/node_modules/
+Frontend/node_modules/
+install_shiro_protocol.reg
+Start_Shiro.bat
+test_api.py
+*.md
+.gemini/

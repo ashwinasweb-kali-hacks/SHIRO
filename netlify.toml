@@ -1,0 +1,8 @@
+[build]
+  publish = "dist"
+  command = "mkdir -p dist && cp -rf *.html Assests Css JavaScript dist/ 2>/dev/null || true"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
